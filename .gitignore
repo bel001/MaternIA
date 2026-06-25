@@ -1,0 +1,20 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.venv/
+venv/
+.env
+
+# Streamlit
+.streamlit/secrets.toml
+
+# Datos grandes opcionales
+*.parquet
+*.h5
+
+# SO/IDE
+.DS_Store
+.vscode/
+.idea/

@@ -1,0 +1,1 @@
+MaternIA Integral usa dos modelos funcionales: riesgo materno y estado fetal. No fusiona datasets; integra salidas mediante triaje.
