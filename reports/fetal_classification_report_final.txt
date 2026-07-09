@@ -1,11 +1,16 @@
-Modelo seleccionado: RandomForest
+MaternIA - Reporte final Fetal Health / Cardiotocography
+======================================================================
+
+Fuente: UCI Cardiotocography ID 193
+Modelo seleccionado: LightGBM_Tuned
+Métrica principal: Recall Patológico
 
               precision    recall  f1-score   support
 
-      Normal       0.97      0.96      0.96       332
-  Sospechoso       0.77      0.75      0.76        59
-  Patológico       0.85      0.94      0.89        35
+      Normal       0.97      0.98      0.97       332
+  Sospechoso       0.85      0.76      0.80        59
+  Patológico       0.87      0.94      0.90        35
 
-    accuracy                           0.93       426
-   macro avg       0.86      0.88      0.87       426
-weighted avg       0.93      0.93      0.93       426
+    accuracy                           0.94       426
+   macro avg       0.89      0.89      0.89       426
+weighted avg       0.94      0.94      0.94       426

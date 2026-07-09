@@ -1,0 +1,22 @@
+{
+  "task": "Fetal Health / Cardiotocography",
+  "model": "MLPClassifier",
+  "model_family": "Red neuronal supervisada",
+  "metrics": {
+    "Modelo": "MLP_NeuralNetwork",
+    "Accuracy Train": 0.9571,
+    "Accuracy Test": 0.8944,
+    "Balanced Accuracy Train": 0.9567,
+    "Balanced Accuracy Test": 0.8565,
+    "Precision Macro Train": 0.9183,
+    "Precision Macro Test": 0.7884,
+    "Recall Macro Train": 0.9567,
+    "Recall Macro Test": 0.8565,
+    "F1 Macro Train": 0.9357,
+    "F1 Macro Test": 0.8183,
+    "Recall Clase Crítica Train": 0.9787,
+    "Recall Clase Crítica Test": 0.8571,
+    "Mejores parámetros": null
+  },
+  "ethical_use": "Prototipo academico de apoyo; no reemplaza evaluacion medica profesional."
+}

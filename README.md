@@ -49,7 +49,7 @@ Los datasets **no se fusionan** porque no pertenecen a las mismas pacientes. El 
 ## Instalación
 
 ```bash
-cd MaternIA_integral_materno_fetal_final
+cd MaternIA
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
@@ -66,6 +66,7 @@ Esto genera:
 ```text
 models/maternIA_maternal_risk_model.pkl
 models/maternIA_fetal_health_model.pkl
+models/maternIA_fetal_mlp_neural_network.pkl
 reports/maternal_*.csv/png/txt/json
 reports/fetal_*.csv/png/txt/json
 reports/integrated_training_summary.json
@@ -90,6 +91,36 @@ http://localhost:8501
 3. **CTG procesado**: carga CSV con 21 variables y predice estado fetal.
 4. **Avanzado académico**: ingreso manual de variables para exposición.
 5. **Reportes**: muestra métricas y matrices de confusión.
+
+## Evidencias de funcionamiento
+
+El repositorio incluye:
+
+- Entrenamiento reproducible: `train_maternia_integral.py`
+- Aplicación desplegable en Streamlit: `app_streamlit_maternia.py`
+- Modelos entrenados en `models/`
+- Reportes de métricas en `reports/`
+- Capturas de ejecución en `capturas/`
+- Notebook de entrenamiento en `notebooks/`
+- Servicio cognitivo interno en `src/cognitive_triage_service.py`
+
+## Comandos de ejecución
+
+```bash
+pip install -r requirements.txt
+python train_maternia_integral.py
+python -m streamlit run app_streamlit_maternia.py
+```
+
+## Componentes evaluados por la rúbrica
+
+- Preprocesamiento de datos y normalización de etiquetas.
+- Selección de características maternas y cardiotocográficas.
+- Entrenamiento, validación y métricas verificables.
+- Red neuronal MLP como modelo comparativo.
+- Servicio cognitivo interno para explicación y triaje.
+- Despliegue funcional mediante Streamlit.
+- Consideraciones éticas y advertencia de uso académico.
 
 ## Advertencia ética
 

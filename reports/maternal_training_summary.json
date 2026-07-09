@@ -1,0 +1,33 @@
+{
+  "task": "Maternal Health Risk",
+  "source": "UCI Maternal Health Risk ID 863",
+  "rows": 1014,
+  "features": [
+    "Age",
+    "SystolicBP",
+    "DiastolicBP",
+    "BS",
+    "BodyTemp",
+    "HeartRate"
+  ],
+  "best_model": "RandomForest",
+  "main_metric": "Recall de Riesgo Alto",
+  "best_metrics": {
+    "Modelo": "RandomForest",
+    "Accuracy Train": 0.9248,
+    "Accuracy Test": 0.8621,
+    "Balanced Accuracy Train": 0.9273,
+    "Balanced Accuracy Test": 0.8703,
+    "Precision Macro Train": 0.9241,
+    "Precision Macro Test": 0.8716,
+    "Recall Macro Train": 0.9273,
+    "Recall Macro Test": 0.8703,
+    "F1 Macro Train": 0.9256,
+    "F1 Macro Test": 0.8695,
+    "Recall Clase Crítica Train": 0.9585,
+    "Recall Clase Crítica Test": 0.9455,
+    "Mejores parámetros": null
+  },
+  "model_path": "/home/rodrigo/Escritorio/Codigos/MaternIA_integral_materno_fetal_final/models/maternIA_maternal_risk_model.pkl",
+  "neural_network_model_path": "/home/rodrigo/Escritorio/Codigos/MaternIA_integral_materno_fetal_final/models/maternIA_maternal_mlp_neural_network.pkl"
+}

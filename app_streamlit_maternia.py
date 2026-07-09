@@ -15,6 +15,8 @@ import numpy as np
 import pandas as pd
 import streamlit as st
 
+from src.cognitive_triage_service import cognitive_triage_service
+
 # ------------------------------------------------
 # CONFIGURACIÓN GENERAL
 # ------------------------------------------------
@@ -43,6 +45,11 @@ FETAL_MODEL_PATHS = [
     MODELS_DIR / "maternIA_fetal_health.pkl",
     BASE_DIR / "maternIA_fetal_health_model.pkl",
     BASE_DIR / "maternIA_fetal_health.pkl",
+]
+
+FETAL_MLP_MODEL_PATHS = [
+    MODELS_DIR / "maternIA_fetal_mlp_neural_network.pkl",
+    BASE_DIR / "maternIA_fetal_mlp_neural_network.pkl",
 ]
 
 DEFAULT_MATERNAL_FEATURES = [
@@ -776,6 +783,20 @@ def show_triage(priority, css, action, reasons):
         for r in reasons:
             st.write(f"• {r}")
 
+
+def show_cognitive_service(maternal_label, fetal_label, emergency_flags):
+    service_output = cognitive_triage_service(
+        maternal_prediction=maternal_label,
+        fetal_prediction=fetal_label,
+        warning_signs=emergency_flags,
+    )
+    with st.expander("Servicio cognitivo interno: explicación de triaje"):
+        st.write(f"Prioridad sugerida por reglas transparentes: **{service_output['priority']}**")
+        for explanation in service_output["explanations"]:
+            st.write(f"• {explanation}")
+        st.caption(service_output["ethical_warning"])
+    return service_output
+
 # ------------------------------------------------
 # MAPEO DE VARIABLES CTG
 # ------------------------------------------------
@@ -905,11 +926,14 @@ def fetal_manual_defaults(feature):
 # ------------------------------------------------
 maternal_path = find_first_existing(MATERNAL_MODEL_PATHS)
 fetal_path = find_first_existing(FETAL_MODEL_PATHS)
+fetal_mlp_path = find_first_existing(FETAL_MLP_MODEL_PATHS)
 
 maternal_artifact = None
 fetal_artifact = None
+fetal_mlp_artifact = None
 maternal_error = None
 fetal_error = None
+fetal_mlp_error = None
 
 if maternal_path:
     try:
@@ -923,13 +947,15 @@ if fetal_path:
     except Exception as e:
         fetal_error = str(e)
 
+if fetal_mlp_path:
+    try:
+        fetal_mlp_artifact = load_model_artifact(str(fetal_mlp_path))
+    except Exception as e:
+        fetal_mlp_error = str(e)
+
 maternal_features = (
     maternal_artifact.get("feature_names") if maternal_artifact else None
 ) or DEFAULT_MATERNAL_FEATURES
-
-fetal_features = (
-    fetal_artifact.get("feature_names") if fetal_artifact else None
-) or DEFAULT_FETAL_FEATURES_UCI
 
 # ------------------------------------------------
 # ENCABEZADO Y SIDEBAR
@@ -965,8 +991,22 @@ with st.sidebar:
     st.markdown("### Modelos")
     st.write("🩺 Riesgo materno")
     st.write("👶 Estado fetal CTG")
+    fetal_model_option = st.selectbox(
+        "Modelo fetal a utilizar",
+        ["Modelo optimizado", "Red neuronal MLP"],
+        disabled=not fetal_mlp_artifact,
+        help="La red neuronal MLP aparece cuando existe models/maternIA_fetal_mlp_neural_network.pkl.",
+    )
     st.markdown("---")
     st.caption("MaternIA vFinal | Uso académico")
+
+if fetal_model_option == "Red neuronal MLP" and fetal_mlp_artifact:
+    fetal_artifact = fetal_mlp_artifact
+    fetal_path = fetal_mlp_path
+
+fetal_features = (
+    fetal_artifact.get("feature_names") if fetal_artifact else None
+) or DEFAULT_FETAL_FEATURES_UCI
 
 # ------------------------------------------------
 # PANEL DE ESTADO
@@ -1146,9 +1186,10 @@ if mode == "Evaluación integral":
             emergency_flags=ctx["emergency_flags"],
             gestational_age=ctx["gestational_age"],
             fhr_basal=ctx["fhr_basal"],
-maternal_age=ctx["age"],
+            maternal_age=ctx["age"],
         )
         show_triage(priority, css, action, reasons)
+        cognitive_output = show_cognitive_service(maternal_label, fetal_label, ctx["emergency_flags"])
 
         with st.expander("📊 Ver probabilidades del modelo materno"):
             table = probability_table(maternal_proba, maternal_artifact.get("class_names") if maternal_artifact else None, "maternal")
@@ -1172,6 +1213,7 @@ maternal_age=ctx["age"],
             "prioridad_final": priority,
             "accion_recomendada": action,
             "motivos": reasons,
+            "servicio_cognitivo": cognitive_output,
             "nota": "Prototipo académico; no reemplaza evaluación profesional."
         }
         st.download_button(
@@ -1212,9 +1254,10 @@ elif mode == "Modo posta":
                 emergency_flags=ctx["emergency_flags"],
                 gestational_age=ctx["gestational_age"],
                 fhr_basal=ctx["fhr_basal"],
-maternal_age=ctx["age"],
+                maternal_age=ctx["age"],
             )
             show_triage(priority, css, action, reasons)
+            show_cognitive_service(maternal_label, None, ctx["emergency_flags"])
 
         with st.expander("Ver probabilidades"):
             table = probability_table(maternal_proba, maternal_artifact.get("class_names") if maternal_artifact else None, "maternal")
@@ -1328,8 +1371,11 @@ elif mode == "Reportes":
     metrics_candidates = [
         REPORTS_DIR / "metrics_report_ordered.csv",
         REPORTS_DIR / "metrics_report.csv",
+        REPORTS_DIR / "maternal_metrics_report_ordered.csv",
         REPORTS_DIR / "maternal_metrics_report.csv",
+        REPORTS_DIR / "fetal_metrics_report_ordered.csv",
         REPORTS_DIR / "fetal_metrics_report.csv",
+        REPORTS_DIR / "fetal_mlp_metrics.json",
     ]
 
     shown_any = False
@@ -1337,7 +1383,10 @@ elif mode == "Reportes":
         if mpath.exists():
             st.markdown(f"### {mpath.name}")
             try:
-                st.dataframe(pd.read_csv(mpath), use_container_width=True)
+                if mpath.suffix == ".json":
+                    st.json(json.loads(mpath.read_text(encoding="utf-8")))
+                else:
+                    st.dataframe(pd.read_csv(mpath), use_container_width=True)
                 shown_any = True
             except Exception:
                 st.warning(f"No se pudo abrir {mpath.name}")
@@ -1348,6 +1397,7 @@ elif mode == "Reportes":
         REPORTS_DIR / "shap_summary.png",
         REPORTS_DIR / "maternal_confusion_matrix.png",
         REPORTS_DIR / "fetal_confusion_matrix.png",
+        REPORTS_DIR / "fetal_mlp_confusion_matrix.png",
     ]
 
     for ipath in image_candidates:
