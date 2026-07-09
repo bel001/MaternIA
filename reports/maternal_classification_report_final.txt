@@ -1,11 +1,16 @@
+MaternIA - Reporte final Maternal Health Risk
+======================================================================
+
+Fuente: UCI Maternal Health Risk ID 863
 Modelo seleccionado: RandomForest
+Métrica principal: Recall de Riesgo Alto
 
               precision    recall  f1-score   support
 
-        Bajo       0.89      0.83      0.86        81
-       Medio       0.78      0.87      0.82        67
+        Bajo       0.89      0.81      0.85        81
+       Medio       0.76      0.85      0.80        67
         Alto       0.96      0.95      0.95        55
 
-    accuracy                           0.87       203
-   macro avg       0.88      0.88      0.88       203
-weighted avg       0.88      0.87      0.87       203
+    accuracy                           0.86       203
+   macro avg       0.87      0.87      0.87       203
+weighted avg       0.87      0.86      0.86       203

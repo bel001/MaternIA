@@ -48,6 +48,7 @@ from sklearn.metrics import (
 from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
+from sklearn.neural_network import MLPClassifier
 
 from imblearn.pipeline import Pipeline
 from imblearn.over_sampling import SMOTE
@@ -188,8 +189,23 @@ def standardize_fetal_columns(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def safe_json(obj: Any, path: Path) -> None:
+    def clean(value: Any) -> Any:
+        if isinstance(value, dict):
+            return {str(k): clean(v) for k, v in value.items()}
+        if isinstance(value, list):
+            return [clean(v) for v in value]
+        if isinstance(value, tuple):
+            return [clean(v) for v in value]
+        if isinstance(value, (np.integer,)):
+            return int(value)
+        if isinstance(value, (np.floating,)):
+            value = float(value)
+        if isinstance(value, float) and np.isnan(value):
+            return None
+        return value
+
     with open(path, "w", encoding="utf-8") as f:
-        json.dump(obj, f, ensure_ascii=False, indent=2)
+        json.dump(clean(obj), f, ensure_ascii=False, indent=2, allow_nan=False)
 
 
 def evaluate_predictions(y_train, y_pred_train, y_test, y_pred_test, positive_label, model_name: str) -> Dict[str, Any]:
@@ -224,6 +240,20 @@ def build_models(task: str) -> Dict[str, Pipeline]:
         "GradientBoosting": Pipeline(steps=[
             ("smote", SMOTE(random_state=RANDOM_STATE)),
             ("clf", GradientBoostingClassifier(random_state=RANDOM_STATE)),
+        ]),
+        "MLP_NeuralNetwork": Pipeline(steps=[
+            ("scaler", StandardScaler()),
+            ("smote", SMOTE(random_state=RANDOM_STATE)),
+            ("clf", MLPClassifier(
+                hidden_layer_sizes=(64, 32),
+                activation="relu",
+                solver="adam",
+                alpha=0.001,
+                learning_rate_init=0.001,
+                max_iter=1000,
+                random_state=RANDOM_STATE,
+                early_stopping=True,
+            )),
         ]),
     }
     if HAS_LIGHTGBM:
@@ -391,10 +421,10 @@ def train_task(
         search = RandomizedSearchCV(
             pipe,
             param_distributions=params,
-            n_iter=6,
+            n_iter=3,
             scoring=scorer,
             cv=cv,
-            n_jobs=-1,
+            n_jobs=1,
             random_state=RANDOM_STATE,
             verbose=1,
         )
@@ -447,6 +477,68 @@ def train_task(
         title=f"Variables importantes - {task_name}",
     )
 
+    neural_model_path = None
+    if "MLP_NeuralNetwork" in fitted:
+        mlp_model = fitted["MLP_NeuralNetwork"]
+        mlp_pred = predictions["MLP_NeuralNetwork"]
+        mlp_report_text = classification_report(
+            y_test,
+            mlp_pred,
+            labels=labels,
+            target_names=display_labels,
+            zero_division=0,
+        )
+        with open(REPORTS_DIR / f"{prefix}_mlp_classification_report.txt", "w", encoding="utf-8") as f:
+            f.write(f"MaternIA - Reporte red neuronal MLP {task_name}\n")
+            f.write("=" * 70 + "\n\n")
+            f.write(f"Fuente: {source}\n")
+            f.write("Modelo: MLPClassifier\n")
+            f.write("Tipo: red neuronal supervisada de perceptron multicapa\n\n")
+            f.write(mlp_report_text)
+
+        plot_confusion(
+            y_test,
+            mlp_pred,
+            labels=labels,
+            display_labels=display_labels,
+            title=f"Matriz de confusión - {task_name} - MLPClassifier",
+            out_path=REPORTS_DIR / f"{prefix}_mlp_confusion_matrix.png",
+        )
+
+        mlp_metrics = df_metrics[df_metrics["Modelo"] == "MLP_NeuralNetwork"].iloc[0].to_dict()
+        safe_json(
+            {
+                "task": task_name,
+                "model": "MLPClassifier",
+                "model_family": "Red neuronal supervisada",
+                "metrics": mlp_metrics,
+                "ethical_use": "Prototipo academico de apoyo; no reemplaza evaluacion medica profesional.",
+            },
+            REPORTS_DIR / f"{prefix}_mlp_metrics.json",
+        )
+
+        neural_model_path = (
+            MODELS_DIR / "maternIA_fetal_mlp_neural_network.pkl"
+            if prefix == "fetal"
+            else MODELS_DIR / "maternIA_maternal_mlp_neural_network.pkl"
+        )
+        mlp_artifact = {
+            "project": "MaternIA",
+            "task": task_name,
+            "model_name": "MLPClassifier",
+            "model": mlp_model,
+            "feature_names": list(X.columns),
+            "class_names": class_names,
+            "labels": labels,
+            "main_metric": main_metric_name,
+            "source": source,
+            "metrics": mlp_metrics,
+            "random_state": RANDOM_STATE,
+            "model_family": "Red neuronal supervisada",
+        }
+        joblib.dump(mlp_artifact, neural_model_path)
+        print("Red neuronal MLP guardada en:", neural_model_path)
+
     artifact = {
         "project": "MaternIA",
         "task": task_name,
@@ -472,6 +564,7 @@ def train_task(
         "main_metric": main_metric_name,
         "best_metrics": df_ordered.loc[0].to_dict(),
         "model_path": str(model_path),
+        "neural_network_model_path": str(neural_model_path) if neural_model_path else None,
     }
     safe_json(summary, REPORTS_DIR / f"{prefix}_training_summary.json")
     return summary
@@ -485,6 +578,14 @@ def generate_integrated_summary(maternal_summary: Dict[str, Any], fetal_summary:
             "UCI Cardiotocography / Fetal Health Classification",
         ],
         "architecture": "Dos modelos separados integrados por una capa final de triaje. No se fusionan los datasets.",
+        "rubric_evidence": {
+            "preprocessing": "Conversión numérica, normalización de etiquetas, estandarización de columnas CTG, SMOTE y escalado cuando corresponde.",
+            "feature_selection": "Variables clínicas maternas definidas por el dataset y 21 variables CTG procesadas.",
+            "neural_network": "MLPClassifier entrenado como red neuronal comparativa y persistido en models/.",
+            "cognitive_service": "Capa interna de explicación y triaje implementada en src/cognitive_triage_service.py.",
+            "deployment": "Aplicación funcional en Streamlit.",
+            "ethics": "Advertencia de uso académico, no diagnóstico, y limitaciones de representatividad documentadas.",
+        },
         "maternal_model": maternal_summary,
         "fetal_model": fetal_summary,
         "integration_logic": [

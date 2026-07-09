@@ -1,0 +1,22 @@
+{
+  "task": "Maternal Health Risk",
+  "model": "MLPClassifier",
+  "model_family": "Red neuronal supervisada",
+  "metrics": {
+    "Modelo": "MLP_NeuralNetwork",
+    "Accuracy Train": 0.6153,
+    "Accuracy Test": 0.5961,
+    "Balanced Accuracy Train": 0.6176,
+    "Balanced Accuracy Test": 0.5982,
+    "Precision Macro Train": 0.6206,
+    "Precision Macro Test": 0.6069,
+    "Recall Macro Train": 0.6176,
+    "Recall Macro Test": 0.5982,
+    "F1 Macro Train": 0.5878,
+    "F1 Macro Test": 0.5684,
+    "Recall Clase Crítica Train": 0.8111,
+    "Recall Clase Crítica Test": 0.8,
+    "Mejores parámetros": null
+  },
+  "ethical_use": "Prototipo academico de apoyo; no reemplaza evaluacion medica profesional."
+}

@@ -1,0 +1,7 @@
+Modelo,Accuracy Train,Accuracy Test,Balanced Accuracy Train,Balanced Accuracy Test,Precision Macro Train,Precision Macro Test,Recall Macro Train,Recall Macro Test,F1 Macro Train,F1 Macro Test,Recall Clase Crítica Train,Recall Clase Crítica Test,Mejores parámetros
+LogisticRegression,0.6104,0.6059,0.6136,0.6107,0.6095,0.5974,0.6136,0.6107,0.6112,0.5998,0.7419,0.8,
+RandomForest,0.9248,0.8621,0.9273,0.8703,0.9241,0.8716,0.9273,0.8703,0.9256,0.8695,0.9585,0.9455,
+GradientBoosting,0.8668,0.7931,0.8691,0.7978,0.8699,0.8122,0.8691,0.7978,0.8695,0.8032,0.9124,0.8545,
+MLP_NeuralNetwork,0.6153,0.5961,0.6176,0.5982,0.6206,0.6069,0.6176,0.5982,0.5878,0.5684,0.8111,0.8,
+LightGBM,0.9248,0.8621,0.9273,0.8682,0.9241,0.8688,0.9273,0.8682,0.9256,0.8666,0.9585,0.9091,
+LightGBM_Tuned,0.9236,0.8621,0.9258,0.8682,0.9231,0.8688,0.9258,0.8682,0.9243,0.8666,0.9585,0.9091,"{'clf__subsample': 1.0, 'clf__num_leaves': 31, 'clf__n_estimators': 150, 'clf__min_child_samples': 10, 'clf__max_depth': 6, 'clf__learning_rate': 0.08, 'clf__colsample_bytree': 0.8}"

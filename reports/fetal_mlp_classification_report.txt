@@ -1,0 +1,16 @@
+MaternIA - Reporte red neuronal MLP Fetal Health / Cardiotocography
+======================================================================
+
+Fuente: UCI Cardiotocography ID 193
+Modelo: MLPClassifier
+Tipo: red neuronal supervisada de perceptron multicapa
+
+              precision    recall  f1-score   support
+
+      Normal       0.97      0.92      0.94       332
+  Sospechoso       0.64      0.80      0.71        59
+  Patológico       0.75      0.86      0.80        35
+
+    accuracy                           0.89       426
+   macro avg       0.79      0.86      0.82       426
+weighted avg       0.91      0.89      0.90       426
